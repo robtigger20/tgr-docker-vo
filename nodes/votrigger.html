@@ -1,0 +1,237 @@
+<!--
+  Copyright JS Foundation and other contributors, http://js.foundation
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!--
+  Created by: Robert Goodsell
+  Date: 26th May 2020
+  Extended node: Node-Red v1.06 (trigger.html) 
+-->
+
+<script type="text/x-red" data-template-name="votrigger">
+    <div class="form-row">
+        <label for="node-input-op1">Send</label>
+        <input type="hidden" id="node-input-op1type">
+        <input style="width: 70%" type="text" id="node-input-op1" placeholder="1">
+    </div>
+    <div class="form-row">
+        <label>then</label>
+        <select id="node-then-type" style="width:70%;">
+            <option value="block">wait to be reset</option>
+            <option value="wait">wait for</option>
+            <option value="loop">resebd it every</option>
+        </select>
+    </div>
+    <div class="form-row node-type-duration">
+        <label></label>
+        <input type="text" id="node-input-duration" style="text-align:end; width:70px !important">
+        <select id="node-input-units" style="width:140px !important">
+            <option value="millisecond">Milliseconds</option>
+            <option value="second">Seconds</option>
+            <option value="minute">Minutes</option>
+            <option value="hour">Hours</option>
+        </select>
+    </div>
+    <div class="form-row node-type-wait">
+    <label></label>
+        <input type="checkbox" id="node-input-extend" style="margin-left: 0px; vertical-align: top; width: auto !important;"> <label style="width:auto !important;" for="node-input-extend">extend delay if new message arrives</label>
+    </div>
+    <div class="form-row node-type-wait">
+        <label>then send</label>
+        <input type="hidden" id="node-input-op2type">
+        <input style="width: 70%" type="text" id="node-input-op2" placeholder="0">
+    </div>
+    <div class="form-row">
+        <label style="width:auto">Reset the trigger if</label>
+        <div style="display:inline-block; width:70%;vertical-align:top">
+        <ul>
+            <li>msg.reset is set</li>
+            <li><span>msg.payload equals</span> <input type="text" id="node-input-reset" style="width:150px" placeholder="optional"></li>
+        </ul>
+    </div>
+    <br/>
+    <div class="form-row">
+        <label for="node-input-bytopic">Handling</label>
+        <select id="node-input-bytopic">
+            <option value="all">all messages</option>
+            <option value="topic">each msg.topic independently</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> <span>Name</span></label>
+        <input type="text" id="node-input-name" placeholder="Name"></input>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="votrigger">
+    <p>When triggered, can send a message, and then optionally a second message, unless extended or reset.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+		<dt class="optional">duration <span class="property-type">number</span></dt>
+        <dd>Dynamically override the duration time</dd>
+		<dt class="optional">units <span class="property-type">string</span></dt>
+        <dd>Dynamic override the duration units, using the options below:</dd>
+		<dd>- <b>millisecond</b>(default)</dd>
+		<dd>- <b>second</b></dd>
+		<dd>- <b>minute</b></dd>
+		<dd>- <b>hour</b></dd>
+		<dt class="optional">reset<span class="property-type">number or any type</span></dt>
+        <dd>If a message is received with this property, any timeout or repeat
+        currently in progress will be cleared and no message triggered. Order of priority for processing messages:</dd>
+		<dd><b>1:</b> <code>Topic</code> defined and <code>reset</code> (any type), reset only the topic provided, if not found no messages are reset.</dd>
+		<dd><b>2:</b> No <code>topic</code> defined and <code>reset</code> (type=number), reset the number of messages (FIFO).</dd>
+		<dd><b>3:</b> No <code>topic</code> defined and <code>reset</code> (type!=number), reset all messages.</dd>
+		<dt class="optional">flush<span class="property-type">number or any type</span></dt>
+        <dd>If a message is received with this property, any timeout or repeat
+        currently in progress will be flushed and all messages triggered. Order of priority for processing messages: 
+		<dd><b>1:</b> <code>topic</code> defined and <code>flush</code> (any type), flush only the topic provided, if not found no messages are flushed.</dd>
+		<dd><b>2:</b> No <code>topic</code> defined and <code>flush</code> (type=number), flush the number of messages (FIFO).</dd>
+		<dd><b>3:</b> No <code>topic</code> defined and <code>flush</code> (type!=number), flush all messages.</dd>
+    </dl>
+
+    <h3>Details</h3>
+    <p>This node can be used to create a timeout within a flow. By default, when
+    it receives a message, it sends on a message with a <code>payload</code> of <code>1</code>.
+    It then waits 250ms before sending a second message with a <code>payload</code> of <code>0</code>.
+    This could be used, for example, to blink an LED attached to a Raspberry Pi GPIO pin.</p>
+    <p>The payloads of each message sent can be configured to a variety of values, including
+    the option to not send anything. For example, setting the initial message to <i>nothing</i> and
+    selecting the option to extend the timer with each received message, the node will
+    act as a watchdog timer; only sending a message if nothing is received within the
+    set interval.</p>
+    <p>If set to a <i>string</i> type, the node supports the mustache template syntax.</p>
+    <p>If the node receives a message with a <code>reset</code> property, or a <code>payload</code>
+    that matches that configured in the node, any timeout or repeat currently in
+    progress will be cleared and no message triggered.</p>
+    <p>The node can be configured to resend a message at a regular interval until it
+    is reset by a received message.</p>
+    <p>Optionally, the node can be configured to treat messages with <code>msg.topic</code> as if they
+    are separate streams.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('votrigger',{
+        category: 'vo',
+        color:"#E6E0F8",
+        defaults: {
+            op1: {value:"1", validate: RED.validators.typedInput("op1type")},
+            op2: {value:"0", validate: RED.validators.typedInput("op2type")},
+            op1type: {value:"val"},
+            op2type: {value:"val"},
+            duration: {value:"250",required:true,validate:RED.validators.number()},
+            extend: {value:"false"},
+            units: {value:"millisecond"},
+            reset: {value:""},
+            bytopic: {value: "all"},
+            name: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "trigger.png",
+        label: function() {
+			let units = (this.units==="millisecond"?"ms":this.units.substring(0,1));
+            if (this.duration > 0) {
+                return this.name + " "+this.duration+units;
+            }
+            if (this.duration < 0) {
+                return this.name + " "+(this.duration * -1)+units;
+            }
+            else {
+                return this.name;
+            }
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            $("#node-then-type").change(function() {
+                if ($(this).val() == "block") {
+                    $(".node-type-wait").hide();
+                    $(".node-type-duration").hide();
+                }
+                else if ($(this).val() == "loop") {
+                    $(".node-type-wait").hide();
+                    $(".node-type-duration").show();
+                } else {
+                    $(".node-type-wait").show();
+                    $(".node-type-duration").show();
+                }
+            });
+
+            if (this.op1type === 'val') {
+                $("#node-input-op1type").val('str');
+            }
+            if (this.op2type === 'val') {
+                $("#node-input-op2type").val('str');
+            }
+
+            var optionNothing = {value:"nul",label:"nothing",hasValue:false};
+            var optionPayload = {value:"pay",label:"the existing msg object",hasValue:false};
+            var optionOriginalPayload = {value:"pay",label:"the original msg object",hasValue:false};
+            var optionLatestPayload = {value:"payl",label:"the latest msg object",hasValue:false};
+
+            $("#node-input-op1").typedInput({
+                default: 'str',
+                typeField: $("#node-input-op1type"),
+                types:['flow','global','str','num','bool','json',
+                    optionPayload,
+                    optionNothing
+                ]
+            });
+            $("#node-input-op2").typedInput({
+                default: 'str',
+                typeField: $("#node-input-op2type"),
+                types:['flow','global','str','num','bool','json',
+                    optionOriginalPayload,
+                    optionLatestPayload,
+                    optionNothing
+                ]
+            });
+
+            if (this.bytopic === undefined) {
+                $("#node-input-bytopic").val("all");
+            }
+
+            if (this.duration == "0") {
+                $("#node-then-type").val("block");
+            }
+            else if ((this.duration * 1) < 0) {
+                $("#node-then-type").val("loop");
+                $("#node-input-duration").val(this.duration*-1);
+            } else {
+                $("#node-then-type").val("wait");
+            }
+            $("#node-then-type").change();
+
+            if (this.extend === "true" || this.extend === true) {
+                $("#node-input-extend").prop("checked",true);
+            } else {
+                $("#node-input-extend").prop("checked",false);
+            }
+
+        },
+        oneditsave: function() {
+            if ($("#node-then-type").val() == "block") {
+                $("#node-input-duration").val("0");
+            }
+            if ($("#node-then-type").val() == "loop") {
+                $("#node-input-duration").val($("#node-input-duration").val() * -1);
+            }
+
+
+        }
+    });
+</script>

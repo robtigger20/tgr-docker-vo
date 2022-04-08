@@ -1,0 +1,181 @@
+
+<script type="text/html" data-template-name="VOMySQLdatabase">
+    <label style="height: 30px;"><b>Database Configuration</b></label>
+    <div class="form-row">
+        <label for="node-config-input-host" style="width: 125px;"><i class="fa fa-globe"></i> Host</label>
+        <input type="text" id="node-config-input-host" placeholder="host address">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-port" style="width: 125px;"><i class="fa fa-random"></i> Port</label>
+        <input type="text" style="width: 60px;" id="node-config-input-port" placeholder="3306">
+    </div>
+        <div class="form-row">
+        <label for="node-config-input-user" style="width: 125px;"><i class="fa fa-user"></i> User</label>
+        <input type="text" id="node-config-input-user" placeholder="username">
+    </div>
+        <div class="form-row">
+        <label for="node-config-input-pass" style="width: 125px;"><i class="fa fa-lock"></i> Password</label>
+        <input type="password" id="node-config-input-password" placeholder="secret">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-db" style="width: 125px;"><i class="fa fa-database"></i> Database</label>
+        <input type="text" id="node-config-input-db" placeholder="schema">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-tz" style="width: 125px;"><i class="fa fa-clock-o"></i> Timezone</label>
+        <input type="text" style="width: 40px;" id="node-config-input-tz" placeholder="10">
+    </div>
+    <hr>
+    <label style="height: 30px;"><b>Connection Options</b></label>
+    <div class="form-row" id="node-config-row-cl">
+        <label for="node-config-input-cl" style="width: 125px;"><i class="fa fa-server"></i> Connections</label>
+        <input type="text" style="width: 30px;" id="node-config-input-cl">
+        <label style="text-align:end; width:40px !important">(max)</label>
+    </div>
+    <div class="form-row" id="node-config-row-hold">
+        <label for="node-config-input-hold" style="width: 125px;"><i class="fa fa-exchange"></i> Persistent</label>
+        <input style="width: 30px;" type="checkbox" id="node-config-input-hold">
+    </div>
+    <div class="form-row" id="node-config-row-ct">
+        <label for="node-config-input-ct" style="width: 125px;"><i class="fa fa-hourglass-start"></i> Connect Timeout</label>
+        <input type="text" style="width: 60px;" id="node-config-input-ct">
+        <label style="text-align:end; width:100px !important"> seconds (0=off)</label>
+    </div>
+    <div class="form-row" id="node-config-row-rt">
+        <label for="node-config-input-rt" style="width: 125px;"><i class="fa fa-hourglass-start"></i> Query Timeout</label>
+        <input type="text" style="width: 60px;" id="node-config-input-rt">
+        <label style="text-align:end; width:100px !important"> seconds (0=off)</label>
+    </div>
+    <div class="form-row" id="node-config-row-idle">
+        <label for="node-config-input-idle" style="width: 125px;"><i class="fa fa-hourglass-start"></i> Idle Timeout</label>
+        <input type="text" style="width: 60px;" id="node-config-input-idle">
+        <label style="text-align:end; width:100px !important"> seconds (0=off)</label>
+    </div>
+    <div class="form-row" id="node-config-row-rc">
+        <label for="node-config-input-rc" style="width: 125px;"><i class="fa fa-history"></i> Reconnect</label>
+        <input type="text" style="width: 60px;" id="node-config-input-rc">
+        <label style="text-align:end; width:100px !important"> seconds (0=off)</label>
+    </div>
+    <div class="form-row" id="node-config-row-vc">
+        <label for="node-config-input-vc" style="width: 125px;"><i class="fa fa-check-square-o"></i> Version Check</label>
+        <input style="width: 30px;" type="checkbox" id="node-config-input-vc">
+    </div>
+    <hr>
+    <div class="form-row">
+        <label for="node-config-input-name" style="width: 125px;"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="config. name">
+    </div>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('VOMySQLdatabase',{
+        category: 'config',
+        defaults: {
+            name: {value:""},
+            host: {value:"127.0.0.1",required:false},
+            port: {value:3306,required:false,validate:function(v) { return RED.validators.number(v) && (v >= 0) && (v <= 65535); }},
+            user: {value:"",required:false},
+            pass: {value:"",required:false},
+            db: {value:"",required:false},
+            tz: {value:10,validate:function(v) { return RED.validators.number(v) && (v >= 0) && (v < 24); }},
+            rc: {value:30,validate:function(v) { return RED.validators.number(v) && (v >= 0); }},
+            vc: {value:false},
+            cl: {value:10, required:true,validate:function(v) { return RED.validators.number(v) && (v > 0) && (v <= 30); }},
+            hold: {value:false, required:true},
+            idle: {value:30,validate:function(v) { return RED.validators.number(v) && (v >= 0); }},
+            rt: {value:30,validate:function(v) { return RED.validators.number(v) && (v >= 0); }},
+            ct: {value:10,validate:function(v) { return RED.validators.number(v) && (v >= 0); }}
+        },
+        credentials: {
+            user: {type: "text"},
+            password: {type: "password"}
+        },
+        label: function() {
+            return this.name || this.db;
+        },
+        oneditprepare: function() {
+            var node = this;
+            $( "#node-config-input-tz" ).spinner({min:0,max:23});
+            $( "#node-config-input-cl" ).spinner({min:1,max:30});
+            $( "#node-config-input-rc" ).spinner({min:0});
+            $( "#node-config-input-port" ).spinner({min:0,max:65535});
+            $( "#node-config-input-idle" ).spinner({min:0});
+            $( "#node-config-input-rt" ).spinner({min:0});
+            $( "#node-config-input-ct" ).spinner({min:0});
+
+            $("#node-config-input-hold").on("change",function() {
+                if($(this).is(":checked")) {
+                    $("#node-config-input-idle").attr('disabled',true).next().css("opacity",0.5)
+                    $("#node-config-input-rc").attr('disabled',false).next().css("opacity",1)
+                    $("#node-config-input-vc").attr('disabled',false).next().css("opacity",1)
+                } else {
+                    $("#node-config-input-idle").attr('disabled',false).next().css("opacity",1)
+                    $("#node-config-input-rc").attr('disabled',true).next().css("opacity",0.5)
+                    $("#node-config-input-vc").attr('disabled',true).next().css("opacity",0.5)
+                }
+            }).change();
+        },
+        oneditsave: function() {
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="vomysql">
+    <div class="form-row">
+        <label for="node-input-mydb"><i class="fa fa-database"></i> Database</label>
+        <input type="text" id="node-input-mydb">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="vomysql">
+    <p>Allows basic access to a MySQL database.</p>
+    <p>This node uses the <b>query</b> operation against the configured database. This does allow both INSERTS and DELETES.
+    By its very nature it allows SQL injection... so <i>be careful out there...</i></p>
+    <br>
+    <p><code>msg.sql</code> must hold the <i>query</i> for the database, and the result is returned in <code>msg.payload</code>.</p>
+    <p><code>msg.payload</code> can contain an array of values to bind to the topic.</p>
+    <p><code>msg.host</code> overide the database host</p>
+    <p><code>msg.port</code> overide the database port</p>
+    <p><code>msg.user</code> overide the username</p>
+    <p><code>msg.pass</code> overide the password</p>
+    <p><code>msg.db</code> overide the database schema</p>
+    <p><code>msg.queryTimeout</code> overide the query read timeout (milliseconds)</p>
+    <p><code>msg.connectTimeout</code> overide the database connection timeout (milliseconds)</p>
+    <br>
+    <p>Typically the returned payload will be an array of the result rows.</p>
+    <p>If nothing is found for the key then <i>null</i> is returned,</p>
+    <br>
+    <p>Additional options exposed for Virtual Operator:</p>
+    <p><b>Connections</b> - Maximium number of connections before an error is returned. Default is 10, range 1-30.</p>
+    <p><b>Persistent</b> - Hold the connection open or connect/disconnection. Default is off.</p>
+    <p><b>Query Timeout</b> - Time to keep connection open to read the executing query. To disable query timeout, set to 0. Default is 30 seconds.</p>
+    <p><b>Connect Timeout</b> - Time to try and open an connection before returning an error. To disable query timeout, set to 0. Default is 10 seconds.</p>
+    <p><b>Idle Timeout</b> - Time to keep connection open after the last query (non-persistent connections). To disable idle timeout, set to 0. Default is 30 seconds.</p>
+    <p><b>Reconnect</b> - On connectuon error, time to retry connecting (persistent connections). To disable reconnect, set to 0. Default is 30 seconds.</p>
+    <p><b>Version Check</b> - Check the MySQL version every hour (persistent connections). Default is off.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('vomysql',{
+        category: 'vo-input',
+        color:"#0080ff",
+        defaults: {
+            mydb: {type:"VOMySQLdatabase",required:true},
+            name: {value:""}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "db.png",
+        label: function() {
+            var levelNode = RED.nodes.node(this.mydb);
+            return this.name||(levelNode?levelNode.label():"vomysql");
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        }
+    });
+</script>

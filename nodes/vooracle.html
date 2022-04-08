@@ -1,0 +1,165 @@
+<!--
+  Copyright 2013, 2016 IBM Corp.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="vooracle">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-connectionType"><i class="icon-tag"></i> Connection</label>
+        <select id="node-input-connectionType" style="width:270px !important">
+            <option value="SERVICE_NAME" >Service Name</option>
+            <option value="SID" >SID</option>
+            <option value="TNS" >TNS</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label id="connectionTypeValueLabel" for="node-input-db"><i class="icon-tag"></i> Service Name</label>
+        <input type="text" id="node-input-db" >
+    </div>
+    <div class="form-row" id='host-row-div'>
+        <label for="node-input-name"><i class="icon-tag"></i> Server</label>
+        <input type="text" id="node-input-host" placeholder="Server">
+    </div>
+    <div class="form-row" id='port-row-div'>
+        <label for="node-input-port"><i class="icon-tag"></i> Port</label>
+        <input type="text" id="node-input-port" placeholder="Port">
+    </div>
+    <div class="form-row">
+         <label for="node-input-username"><i class="icon-tag"></i> Username</label>
+         <input type="text" id="node-input-username">
+     </div>
+     <div class="form-row">
+         <label for="node-input-password"><i class="icon-tag"></i> Password</label>
+         <input type="password" id="node-input-password">
+     </div>
+     <div class="form-row">
+        <label><i class="fa fa-sliders"></i> Output</label>
+        <select id="node-input-outputMsgType" style="width:270px !important">
+            <option value="single" selected>One msg/query</option>
+            <option value="multi" >Multiple msgs/query</option>
+        </select>
+    </div>
+    <div class="form-row" id="message-count-div">
+        <label for="node-input-resultLimit"><i class="fa fa-bars"></i> Msg rows</label>
+        <input type="text" id="node-input-resultLimit" style="width: 80px;"> (maximum # of result rows per message)
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="vooracle">
+    <p>A simple wrapper around node-oracledb.</p>
+    <p>
+    Execute SQL commands against an Oracle server and receive results from inside node-red. Queries must be passed in as
+    msg.payload. Errors if any are set as msg.err and are sent out through the error port.
+    </p>
+    <u>Configuration details</u>
+    <p>
+    <b>Name</b> is the standard node-red-name node.
+    </p>
+    <p><b>Server</b> The Oracle server URL</p>
+    <p><b>Port</b> The port</p>
+    <p><b>Database</b> Name of the database on the server</p>
+    <p><b>Username</b> Username to use to login to the database</p>
+    <p><b>Password</b> Password to use to login to the database</p>
+    <p><b>Output</b> Select 'single' to receive the entire result set as one message; 'multi' to break up output messages</p>
+    <p><b>Msg rows</b> Number of rows to include in one output message</p>
+</script>
+
+<script type="text/javascript">
+    function handleOutputTypeChange() {
+        if (this.value === 'multi') {
+            $('#message-count-div').show();
+        } else {
+            $('#message-count-div').hide();
+        }
+    }
+
+    function handleConnecTypeChange(val) {
+        if (val === 'TNS') {
+            $('#node-input-host').prop("disabled", true);
+            $('#node-input-port').prop("disabled", true);
+        } else {
+            $('#node-input-host').prop("disabled", false);
+            $('#node-input-port').prop("disabled", false);
+        }
+    }
+
+    RED.nodes.registerType('vooracle', {
+        category: 'vo',
+        color: '#ff5555',
+        defaults: {
+            name: {value: ""},
+            host: {
+                value: "", validate: function (host) {
+                    return (host && host.trim()) || this.connectionType==='TNS';
+                }
+            },
+            port: {
+                value: 1521, validate: function (port) {
+                    return (RED.validators.number(port) && (port > 0)) || this.connectionType==='TNS';
+                }
+            },
+            connectionType : {value:"SERVICE_NAME"},
+            db: {value: "",required:true},
+            outputMsgType: {value: "single"},
+            resultLimit: {
+                value: 100, validate: function (resultLimit) {
+                    const outputMsgType = $('#node-input-outputMsgType').val() || this.outputMsgType;
+                    if (outputMsgType === 'single') {
+                        return true;
+                    }
+                    return RED.validators.number(resultLimit) && (resultLimit > 0)
+                }
+            }
+        },
+        credentials: {
+            username: {type: "text"},
+            password: {type: "password"}
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "db.png",
+        label: function () {
+            return this.name || "vooracle";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function () {
+            $('#node-input-outputMsgType').change(handleOutputTypeChange);
+
+            handleOutputTypeChange();
+            handleConnecTypeChange(this.connectionType);
+
+            $('#node-input-connectionType').change(function() {
+                let connectionTypeValueLabel;
+                switch(this.value){
+                    case 'SERVICE_NAME':
+                        connectionTypeValueLabel = 'Service Name';
+                        break;
+                    case 'SID':
+                        connectionTypeValueLabel = 'SID';
+                        break;
+                    case 'TNS':
+                        connectionTypeValueLabel = 'Connect String';
+                }
+                $("#connectionTypeValueLabel").text(connectionTypeValueLabel);
+                handleConnecTypeChange(this.value);
+            });
+        }
+    });
+</script>
