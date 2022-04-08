@@ -10,7 +10,7 @@ FROM registry.access.redhat.com/${OS} as build
     
 RUN mkdir -p /opt/app-root/src/node-red
 WORKDIR /opt/app-root/src/node-red
-RUN npm install --no-audit --no-update-notifier --no-fund --production
+# RUN npm install --no-audit --no-update-notifier --no-fund --production
 COPY . .
 
 ### Stage RELEASE #####################################################################################################
