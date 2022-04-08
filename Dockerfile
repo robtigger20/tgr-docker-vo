@@ -1,25 +1,19 @@
-FROM image-registry.openshift-image-registry.svc:5000/openshift/nodejs
+* FROM image-registry.openshift-image-registry.svc:5000/openshift/nodejs
 
-# This image supports the Source-to-Image
-# (see more at https://docs.openshift.com/container-platform/3.11/creating_images/s2i.html).
-# In order to support the Source-to-Image framework, there are some interesting
-# scripts inside the builder image, that can be run in a Dockerfile directly as well:
-# * The `/usr/libexec/s2i/assemble` script inside the image is run in order
-#   to produce a new image with the application artifacts.
-#   The script takes sources of a given application and places them into
-#   appropriate directories inside the image.
-# * The `/usr/libexec/s2i/run` script executes the application and is set as
-#   a default command in the resulting container image.
+# First stage builds the application
+FROM ubi8/nodejs-16 as builder
 
-# Add application sources to a directory that the assemble script expects them
-# and set permissions so that the container runs without root access
-USER 0
-ADD app-src /tmp/src
-RUN chown -R 1001:0 /tmp/src
-USER 1001
+# Add application sources
+ADD app-src $HOME
 
-# Let the assemble script to install the dependencies
-RUN /usr/libexec/s2i/assemble
+# Install the dependencies
+RUN npm install
+
+# Second stage copies the application to the minimal image
+FROM ubi8/nodejs-16-minimal
+
+# Copy the application source and build artifacts from the builder image to this one
+COPY --from=builder $HOME $HOME
 
 # Run script uses standard ways to run the application
-CMD /usr/libexec/s2i/run
+CMD npm run -d start
