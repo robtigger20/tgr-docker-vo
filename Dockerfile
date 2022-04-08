@@ -77,9 +77,9 @@ LABEL org.label-schema.build-date=${BUILD_DATE} \
 # COPY --from=build /opt/app-root/src/.node-red/prod_node_modules ./node_modules
 
 # Add the VO custom nodes
-RUN mkdir -p /node_modules/@node-red/nodes/core/vo
-COPY /nodes/ /node_modules/@node-red/nodes/core/vo
-RUN ls /node_modules/@node-red/nodes/core/vo
+# RUN mkdir -p /node_modules/@node-red/nodes/core/vo
+# COPY /nodes/ /node_modules/@node-red/nodes/core/vo
+# RUN ls /node_modules/@node-red/nodes/core/vo
 
 # Chown, install devtools & Clean up
 # RUN chown -R node-red:root /opt/app-root/src/.node-red && \
@@ -90,10 +90,10 @@ RUN ls /node_modules/@node-red/nodes/core/vo
 USER node-red
 
 # Env variables
-ENV NODE_RED_VERSION=$NODE_RED_VERSION \
-    NODE_PATH=/opt/app-root/src/.node-red/node_modules:/data/node_modules \
-    PATH=/opt/app-root/src/.node-red/node_modules/.bin:${PATH} \
-    FLOWS=flows.json
+# ENV NODE_RED_VERSION=$NODE_RED_VERSION \
+#    NODE_PATH=/opt/app-root/src/.node-red/node_modules:/data/node_modules \
+#    PATH=/opt/app-root/src/.node-red/node_modules/.bin:${PATH} \
+#    FLOWS=flows.json
 
 # ENV NODE_RED_ENABLE_SAFE_MODE=true    # Uncomment to enable safe start mode (flows not running)
 # ENV NODE_RED_ENABLE_PROJECTS=true     # Uncomment to enable projects option
