@@ -21,20 +21,20 @@ RUN set -ex && \
         openssl \
         openssh-client \
         ca-certificates && \
-    mkdir -p /opt/app-root/src/.node-red /data && \
+    mkdir -p /usr/src/node-red /data && \
     deluser --remove-home node && \
-    adduser -h /opt/app-root/src/.node-red -D -H node-red -u 1000 && \
+    adduser -h /usr/src/node-red -D -H node-red -u 1000 && \
     chown -R node-red:root /data && chmod -R g+rwX /data && \
-    chown -R node-red:root /opt/app-root/src/.node-red && chmod -R g+rwX /opt/app-root/src/.node-red
+    chown -R node-red:root /usr/src/node-red && chmod -R g+rwX /usr/src/node-red 
 
 # Set work directory
-WORKDIR /opt/app-root/src/.node-red
+WORKDIR /usr/src/node-red
 
 # Setup SSH known_hosts file
 COPY known_hosts.sh .
 RUN chmod 775 ./known_hosts.sh && \
     ./known_hosts.sh /etc/ssh/ssh_known_hosts && \
-    rm /opt/app-root/src/.node-red/known_hosts.sh
+    rm /usr/src/node-red/known_hosts.sh
 
 # package.json contains Node-RED NPM module and node dependencies
 COPY package.json .
@@ -72,8 +72,7 @@ LABEL org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.vcs-type="Git" \
     org.label-schema.vcs-url="https://git.puma.corp.telstra.com/virtual-operator/virtual-operator-core-docker"
 
-
-COPY --from=build /opt/app-root/src/.node-red/prod_node_modules ./node_modules
+COPY --from=build /usr/src/node-red /prod_node_modules ./node_modules
 
 # Add the VO custom nodes
 RUN mkdir -p /node_modules/@node-red/nodes/core/vo
@@ -81,17 +80,18 @@ COPY /nodes/ /node_modules/@node-red/nodes/core/vo
 RUN ls /node_modules/@node-red/nodes/core/vo
 
 # Chown, install devtools & Clean up
-RUN chown -R node-red:root /opt/app-root/src/.node-red && \
+RUN chown -R node-red:root /usr/src/node-red && \
     chmod 775 /tmp/install_devtools.sh && \ 
     /tmp/install_devtools.sh && \
     rm -r /tmp/*
 
+#Chanfe user to node-red default
 USER node-red
 
 # Env variables
 ENV NODE_RED_VERSION=$NODE_RED_VERSION \
-    NODE_PATH=/opt/app-root/src/.node-red/node_modules:/data/node_modules \
-    PATH=/opt/app-root/src/.node-red/node_modules/.bin:${PATH} \
+    NODE_PATH=/usr/src/node-red/node_modules:/data/node_modules \
+    PATH=/usr/src/node-red/node_modules/.bin:${PATH} \
     FLOWS=flows.json
 
 # ENV NODE_RED_ENABLE_SAFE_MODE=true    # Uncomment to enable safe start mode (flows not running)
@@ -105,7 +105,7 @@ EXPOSE 1880
 # Change user to root to prevent permission denied
 USER root
 
-ENV LD_LIBRARY_PATH=/lib
+ENV LD_LIBRARY_PATH=/oci
 
 COPY libs/instantclient-basic-linuxx64.zip .
 RUN unzip instantclient-basic-linuxx64 && \
@@ -113,8 +113,7 @@ RUN unzip instantclient-basic-linuxx64 && \
     rm -rf instantclient-basic-linuxx64 && \
     apk add libaio && \
     apk add libaio libnsl libc6-compat && \
-    cd /lib && \
-    # Linking ld-linux-x86-64.so.2 to the lib/ location (Update accordingly)
+    cd /oci && \
     ln -s /lib64/* /lib && \
     ln -s libnsl.so.2 /usr/lib/libnsl.so.1 && \
     ln -s libc.so /usr/lib/libresolv.so.2
