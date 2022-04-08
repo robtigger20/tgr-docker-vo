@@ -108,20 +108,17 @@ USER root
 
 ENV LD_LIBRARY_PATH=/lib
 
-# Add your database nls_lang to avoid "not a valid month" error.
-# ENV NLS_LANG="American_America.WE8ISO8859P1" # Uncomment to enable, default is American_America.WE8ISO8859P1
-
 COPY libs/instantclient-basic-linuxx64.zip .
-RUN unzip instantclient-basic-linuxx64 && \
-    cp -r instantclient*/* /lib && \
-    rm -rf instantclient-basic-linuxx64 && \
-    apk add libaio && \
-    apk add libaio libnsl libc6-compat && \
-    cd /lib && \
-    # Linking ld-linux-x86-64.so.2 to the lib/ location (Update accordingly)
-    ln -s /lib64/* /lib && \
-    ln -s libnsl.so.2 /usr/lib/libnsl.so.1 && \
-    ln -s libc.so /usr/lib/libresolv.so.2
+# RUN unzip instantclient-basic-linuxx64 && \
+#   cp -r instantclient*/* /lib && \
+#    rm -rf instantclient-basic-linuxx64 && \
+#    apk add libaio && \
+#    apk add libaio libnsl libc6-compat && \
+#    cd /lib && \
+#    # Linking ld-linux-x86-64.so.2 to the lib/ location (Update accordingly)
+#    ln -s /lib64/* /lib && \
+#    ln -s libnsl.so.2 /usr/lib/libnsl.so.1 && \
+#    ln -s libc.so /usr/lib/libresolv.so.2
 
 # Add a healthcheck (default every 30 secs)
 # HEALTHCHECK CMD curl http://localhost:1880/ || exit 1
