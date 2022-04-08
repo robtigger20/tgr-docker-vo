@@ -1,7 +1,7 @@
 # First stage builds the application
 ARG ARCH=amd64
 ARG NODE_VERSION=14
-ARG OS=ubi8 # alpine3.12
+ARG OS=ubi8
 
 #### Stage BASE ########################################################################################################
 # FROM ${ARCH}/node:${NODE_VERSION}-${OS} AS base
