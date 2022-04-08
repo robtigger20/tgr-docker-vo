@@ -33,7 +33,7 @@ WORKDIR /opt/app-root/src/.node-red
 
 # Setup SSH known_hosts file
 COPY known_hosts.sh .
-RUN chmod -R g+rwX ./known_hosts.sh && \
+RUN chmod 775 ./known_hosts.sh && \
     ./known_hosts.sh /etc/ssh/ssh_known_hosts && \
     rm /opt/app-root/src/.node-red/known_hosts.sh
 
@@ -49,7 +49,7 @@ FROM base AS build
 # Install Build tools
 RUN apk add --no-cache --virtual buildtools build-base linux-headers udev python2 && \
     npm install --unsafe-perm --no-update-notifier --no-fund --only=production && \
-    chmod -R g+rwX /tmp/remove_native_gpio.sh && \ 
+    chmod 775 /tmp/remove_native_gpio.sh && \ 
     /tmp/remove_native_gpio.sh && \
     cp -R node_modules prod_node_modules
 
@@ -83,7 +83,7 @@ RUN ls /node_modules/@node-red/nodes/core/vo
 
 # Chown, install devtools & Clean up
 RUN chown -R node-red:root /opt/app-root/src/.node-red && \
-    chmod -R g+rwX /tmp/install_devtools.sh && \ 
+    chmod 775 /tmp/install_devtools.sh && \ 
     /tmp/install_devtools.sh && \
     rm -r /tmp/*
 
