@@ -11,22 +11,22 @@ COPY scripts/*.sh /tmp/
 RUN ls /tmp/
 
 # Install tools, create Node-RED app and data dir, add user and set rights
-RUN set -ex && \
-    apt-get update && apt-get install -y \
-        bash \
-        tzdata \
-        curl \
-        nano \
-        wget \
-        git \
-        openssl \
-        openssh-client \
-        ca-certificates && \
-    mkdir -p /opt/app-root/src/.node-red /data && \
-    deluser --remove-home node && \
-    adduser -h /opt/app-root/src/.node-red -D -H node-red -u 1000 && \
-    chown -R node-red:root /data && chmod -R g+rwX /data && \
-    chown -R node-red:root /opt/app-root/src/.node-red && chmod -R g+rwX /opt/app-root/src/.node-red
+# RUN set -ex && \
+#    apt-get update && apt-get install -y \
+#        bash \
+#        tzdata \
+#        curl \
+#        nano \
+#        wget \
+#        git \
+#        openssl \
+#        openssh-client \
+#        ca-certificates && \
+#    mkdir -p /opt/app-root/src/.node-red /data && \
+#    deluser --remove-home node && \
+#    adduser -h /opt/app-root/src/.node-red -D -H node-red -u 1000 && \
+#    chown -R node-red:root /data && chmod -R g+rwX /data && \
+#   chown -R node-red:root /opt/app-root/src/.node-red && chmod -R g+rwX /opt/app-root/src/.node-red
 
 # Set work directory
 WORKDIR /opt/app-root/src/.node-red
