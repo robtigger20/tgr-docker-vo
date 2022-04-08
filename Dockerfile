@@ -2,7 +2,7 @@ ARG NODE_VERSION=14
 ARG OS=ubi8
 
 #### Stage BASE ########################################################################################################
-FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}$ as base
+FROM registry.access.redhat.com/${OS} as base
 
 RUN  dnf module install --nodocs -y nodejs:14 python39 --setopt=install_weak_deps=0 --disableplugin=subscription-manager \
     && dnf install --nodocs -y make gcc gcc-c++  --setopt=install_weak_deps=0 --disableplugin=subscription-manager \
@@ -14,6 +14,7 @@ RUN npm install --no-audit --no-update-notifier --no-fund --production
 COPY . .
 
 ### Stage RELEASE #####################################################################################################
+FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}$ 
 ARG BUILD_DATE
 ARG BUILD_VERSION
 ARG BUILD_REF
