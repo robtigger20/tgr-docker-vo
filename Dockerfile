@@ -10,7 +10,9 @@ FROM registry.access.redhat.com/${OS} as build
     
 RUN mkdir -p /opt/app-root/src/node-red
 WORKDIR /opt/app-root/src/node-red
-# RUN npm install --no-audit --no-update-notifier --no-fund --production
+COPY package.json .
+COPY flows.json .
+RUN npm install --no-audit --no-update-notifier --no-fund --production
 COPY . .
 
 ### Stage RELEASE #####################################################################################################
@@ -38,8 +40,6 @@ COPY --from=build /opt/app-root/src/node-red /opt/app-root/src/node-red
 WORKDIR /opt/app-root/src/node-red
 
 # Add the VO custom nodes
-COPY package.json .
-COPY flows.json .
 RUN ls /opt/app-root/src/node-red
 RUN mkdir -p /opt/app-root/src/node-red/node_modules/@node-red/nodes/core/vo
 COPY /nodes/ /opt/app-root/src/node-red/node_modules/@node-red/nodes/core/vo
