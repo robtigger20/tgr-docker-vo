@@ -10,10 +10,10 @@ RUN  dnf module install --nodocs -y nodejs:${OS} python39 --setopt=install_weak_
     
 RUN mkdir -p /opt/app-root/src/node-red
 WORKDIR /opt/app-root/src/node-red
-COPY package.json .
-COPY flows.json .
+COPY package.json /opt/app-root/src/node-red
+COPY flows.json /opt/app-root/src/node-red
 RUN npm install --no-audit --no-update-notifier --no-fund --production
-# COPY . .
+COPY . .
 
 ### Stage RELEASE #####################################################################################################
 FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}
