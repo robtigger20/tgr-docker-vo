@@ -1,8 +1,8 @@
 ARG NODE_VERSION=14
 ARG OS=ubi8
 
-#### Stage BASE ########################################################################################################
-FROM registry.access.redhat.com/${OS} as base
+#### Stage BUILD ########################################################################################################
+FROM registry.access.redhat.com/${OS} as build
 
 RUN  dnf module install --nodocs -y nodejs:14 python39 --setopt=install_weak_deps=0 --disableplugin=subscription-manager \
     && dnf install --nodocs -y make gcc gcc-c++  --setopt=install_weak_deps=0 --disableplugin=subscription-manager \
