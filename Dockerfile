@@ -74,7 +74,7 @@ LABEL org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.vcs-url="https://git.puma.corp.telstra.com/virtual-operator/virtual-operator-core-docker"
 
 
-COPY --from=build /opt/app-root/src/.node-red/prod_node_modules ./node_modules
+# COPY --from=build /opt/app-root/src/.node-red/prod_node_modules ./node_modules
 
 # Add the VO custom nodes
 RUN mkdir -p /node_modules/@node-red/nodes/core/vo
