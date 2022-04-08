@@ -40,7 +40,8 @@ WORKDIR /opt/app-root/src/node-red
 # Add the VO custom nodes
 COPY package.json .
 COPY flows.json .
-RUN chmod 775 /node_modules
+RUN ls .
+RUN chmod 775 ./node_modules
 RUN mkdir -p /node_modules/@node-red/nodes/core/vo
 COPY /nodes/ /node_modules/@node-red/nodes/core/vo
 RUN ls /node_modules/@node-red/nodes/core/vo
