@@ -58,4 +58,4 @@ ENV NODE_RED_VERSION=$NODE_RED_VERSION \
 # Expose the listening port of node-red
 EXPOSE 1880
 
-CMD ["npm", "start"]
+ENTRYPOINT ["npm", "start", "--cache", "/data/.npm", "--", "--userDir", "/data"]
