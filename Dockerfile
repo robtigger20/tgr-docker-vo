@@ -1,5 +1,4 @@
 # First stage builds the application
-ARG ARCH=amd64
 ARG NODE_VERSION=14
 ARG OS=ubi8
 
@@ -13,12 +12,12 @@ RUN ls /tmp/
 
 # Install tools, create Node-RED app and data dir, add user and set rights
 RUN set -ex && \
-    apt add --no-cache \
+    apt-get update && apt-get install -y \
         bash \
         tzdata \
-        iputils \
         curl \
         nano \
+        wget \
         git \
         openssl \
         openssh-client \
@@ -28,15 +27,13 @@ RUN set -ex && \
     adduser -h /opt/app-root/src/.node-red -D -H node-red -u 1000 && \
     chown -R node-red:root /data && chmod -R g+rwX /data && \
     chown -R node-red:root /opt/app-root/src/.node-red && chmod -R g+rwX /opt/app-root/src/.node-red
-    # chown -R node-red:node-red /data && \
-    # chown -R node-red:node-red /opt/app-root/src/.node-red
 
 # Set work directory
 WORKDIR /opt/app-root/src/.node-red
 
 # Setup SSH known_hosts file
 COPY known_hosts.sh .
-RUN chmod 775 ./known_hosts.sh && \
+RUN chmod -R g+rwX ./known_hosts.sh && \
     ./known_hosts.sh /etc/ssh/ssh_known_hosts && \
     rm /opt/app-root/src/.node-red/known_hosts.sh
 
@@ -52,7 +49,7 @@ FROM base AS build
 # Install Build tools
 RUN apk add --no-cache --virtual buildtools build-base linux-headers udev python2 && \
     npm install --unsafe-perm --no-update-notifier --no-fund --only=production && \
-    chmod 775 /tmp/remove_native_gpio.sh && \ 
+    chmod -R g+rwX /tmp/remove_native_gpio.sh && \ 
     /tmp/remove_native_gpio.sh && \
     cp -R node_modules prod_node_modules
 
@@ -86,7 +83,7 @@ RUN ls /node_modules/@node-red/nodes/core/vo
 
 # Chown, install devtools & Clean up
 RUN chown -R node-red:root /opt/app-root/src/.node-red && \
-    chmod 775 /tmp/install_devtools.sh && \ 
+    chmod -R g+rwX /tmp/install_devtools.sh && \ 
     /tmp/install_devtools.sh && \
     rm -r /tmp/*
 
