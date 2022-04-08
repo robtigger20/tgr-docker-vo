@@ -5,7 +5,7 @@ ARG OS=ubi8 # alpine3.12
 
 #### Stage BASE ########################################################################################################
 # FROM ${ARCH}/node:${NODE_VERSION}-${OS} AS base
-FROM registry.redhat.io/{OS}/nodejs-{NODE_VERSION} as builder
+FROM registry.redhat.io/${OS}/nodejs-${NODE_VERSION} as base
 
 # Copy scripts
 COPY scripts/*.sh /tmp/
