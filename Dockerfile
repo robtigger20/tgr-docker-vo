@@ -1,4 +1,3 @@
-ARG ARCH=amd64
 ARG NODE_VERSION=14
 ARG OS=ubi8
 
@@ -11,13 +10,11 @@ RUN  dnf module install --nodocs -y nodejs:14 python39 --setopt=install_weak_dep
     
 RUN mkdir -p /opt/app-root/src/node-red
 WORKDIR /opt/app-root/src/node-red
-COPY package.json /opt/app-root/src/node-red
-COPY flows.json /opt/app-root/src/node-red
 RUN npm install --no-audit --no-update-notifier --no-fund --production
 COPY . .
 
 ### Stage RELEASE #####################################################################################################
-FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}
+FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION} as release
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -27,7 +24,7 @@ ARG ARCH
 ARG TAG_SUFFIX=default
 
 LABEL org.label-schema.build-date=${BUILD_DATE} \
-    org.label-schema.docker.dockerfile="Dockerfile.oracle" \
+    org.label-schema.docker.dockerfile="Dockerfile.ubi8" \
     org.label-schema.license="Apache-2.0" \
     org.label-schema.name="Node-RED" \
     org.label-schema.version=${BUILD_VERSION} \
@@ -39,9 +36,11 @@ LABEL org.label-schema.build-date=${BUILD_DATE} \
 
 COPY --from=build /opt/app-root/src/node-red /opt/app-root/src/node-red
 
-WORKDIR /opt/app-root/src/mode-red
+WORKDIR /opt/app-root/src/node-red
 
 # Add the VO custom nodes
+COPY package.json .
+COPY flows.json .
 RUN mkdir -p /node_modules/@node-red/nodes/core/vo
 COPY /nodes/ /node_modules/@node-red/nodes/core/vo
 RUN ls /node_modules/@node-red/nodes/core/vo
@@ -49,8 +48,8 @@ RUN ls /node_modules/@node-red/nodes/core/vo
 # Env variables
 ENV NODE_ENV=production
 ENV NODE_RED_VERSION=$NODE_RED_VERSION \
-    NODE_PATH=/opt/app-root/src/.node-red/node_modules:/data/node_modules \
-    PATH=/opt/app-root/src/.node-red/node_modules/.bin:${PATH} \
+    NODE_PATH=/opt/app-root/src/node-red/node_modules:/data/node_modules \
+    PATH=/opt/app-root/src/node-red/node_modules/.bin:${PATH} \
     FLOWS=flows.json
 
 # ENV NODE_RED_ENABLE_SAFE_MODE=true    # Uncomment to enable safe start mode (flows not running)
