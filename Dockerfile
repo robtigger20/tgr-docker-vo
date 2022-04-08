@@ -13,10 +13,11 @@ WORKDIR /opt/app-root/src/node-red
 COPY package.json .
 COPY flows.json .
 RUN npm install --no-audit --no-update-notifier --no-fund --production
-COPY . .
+# COPY . .
 
 ### Stage RELEASE #####################################################################################################
 FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}
+
 ARG BUILD_DATE
 ARG BUILD_VERSION
 ARG BUILD_REF
