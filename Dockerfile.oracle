@@ -1,6 +1,6 @@
 ARG ARCH=amd64
 ARG NODE_VERSION=14
-ARG OS=alpine3.12
+ARG OS=alpine3.14
 
 #### Stage BASE ########################################################################################################
 FROM ${ARCH}/node:${NODE_VERSION}-${OS} AS base
@@ -72,12 +72,12 @@ LABEL org.label-schema.build-date=${BUILD_DATE} \
     org.label-schema.vcs-type="Git" \
     org.label-schema.vcs-url="https://git.puma.corp.telstra.com/virtual-operator/virtual-operator-core-docker"
 
-COPY --from=build /usr/src/node-red /prod_node_modules ./node_modules
+COPY --from=build /usr/src/node-red/prod_node_modules ./node_modules
 
 # Add the VO custom nodes
-RUN mkdir -p /node_modules/@node-red/nodes/core/vo
-COPY /nodes/ /node_modules/@node-red/nodes/core/vo
-RUN ls /node_modules/@node-red/nodes/core/vo
+RUN mkdir -p ./node_modules/@node-red/nodes/core/vo
+COPY /nodes/ ./node_modules/@node-red/nodes/core/vo
+RUN ls ./node_modules/@node-red/nodes/core/vo
 
 # Chown, install devtools & Clean up
 RUN chown -R node-red:root /usr/src/node-red && \
