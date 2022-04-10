@@ -8,12 +8,14 @@ RUN  dnf module install --nodocs -y nodejs:14 python39 --setopt=install_weak_dep
     && dnf install --nodocs -y make gcc gcc-c++  --setopt=install_weak_deps=0 --disableplugin=subscription-manager \
     && dnf clean all --disableplugin=subscription-manager
     
-RUN mkdir -p /opt/app-root/src/.node-red
+RUN mkdir -p /opt/app-root/src/.node-red && \
+    chmod 775 /opt/app-root/src/.node-red 
 WORKDIR /opt/app-root/src/.node-red
 COPY package.json /opt/app-root/src/.node-red
 COPY flows.json /opt/app-root/src/.node-red
+COPY settings.js /opt/app-root/src/.node-red
 RUN npm install --no-audit --no-update-notifier --no-fund --production
-# COPY . .
+COPY . .
 
 ### Stage RELEASE #####################################################################################################
 FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}
