@@ -13,7 +13,7 @@ WORKDIR /opt/app-root/src/.node-red
 COPY package.json /opt/app-root/src/.node-red
 COPY flows.json /opt/app-root/src/.node-red
 RUN npm install --no-audit --no-update-notifier --no-fund --production
-COPY . .
+# COPY . .
 
 ### Stage RELEASE #####################################################################################################
 FROM registry.access.redhat.com/${OS}/nodejs-${NODE_VERSION}
@@ -49,9 +49,9 @@ WORKDIR /opt/app-root/src/.node-red
 # Env variables
 ENV NODE_ENV=production
 ENV NODE_RED_VERSION=$NODE_RED_VERSION \
-    NODE_PATH=/opt/app-root/src/.node-red/node_modules:/data/node_modules \
-    PATH=/opt/app-root/src/.node-red/node_modules/.bin:${PATH} \
-    FLOWS=/opt/app-root/src/.node-red/flows.json
+    NODE_PATH=./node_modules:/data/node_modules \
+    PATH=./node_modules/.bin:${PATH} \
+    FLOWS=./flows.json
 
 # ENV NODE_RED_ENABLE_SAFE_MODE=true    # Uncomment to enable safe start mode (flows not running)
 # ENV NODE_RED_ENABLE_PROJECTS=true     # Uncomment to enable projects option
