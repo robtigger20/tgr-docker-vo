@@ -3,8 +3,7 @@ ARG NODE_VERSION=14
 ARG OS=alpine3.15
 
 #### Stage BASE ########################################################################################################
-FROM node:alpine AS base
-# docker.io/${ARCH}/node:${NODE_VERSION}-${OS} AS base
+FROM docker.io/${ARCH}/node:${NODE_VERSION}-${OS} AS base
 
 # Copy scripts
 COPY scripts/*.sh /tmp/
