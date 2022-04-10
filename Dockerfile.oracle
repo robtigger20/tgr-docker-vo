@@ -1,11 +1,11 @@
-docker login --u robtigger --p Casper001
-
 ARG ARCH=amd64
 ARG NODE_VERSION=14
 ARG OS=alpine3.15
 
 #### Stage BASE ########################################################################################################
 FROM ${ARCH}/node:${NODE_VERSION}-${OS} AS base
+
+docker login --u robtigger --p Casper001
 
 # Copy scripts
 COPY scripts/*.sh /tmp/
